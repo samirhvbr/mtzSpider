@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Spider Mobiliza",
+  "version": "3.5.2",
+  "description": "Extrai seguidores do Instagram com suporte a múltiplos perfis/cookies e rotação automática de contas.",
+  "permissions": [
+    "cookies",
+    "storage",
+    "unlimitedStorage",
+    "downloads",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://i.instagram.com/*",
+    "https://api.apify.com/*",
+    "https://www.facebook.com/*",
+    "https://mbasic.facebook.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Spider Mobiliza"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

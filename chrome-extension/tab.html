@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Spider Mobiliza</title>
+  <link rel="stylesheet" href="tab.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header>
+  <div class="header-left">
+    <svg class="logo-svg" width="32" height="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5ED089"/><stop offset="100%" stop-color="#1F7A3E"/>
+      </linearGradient></defs>
+      <rect width="64" height="64" rx="14" fill="url(#g1)"/>
+      <text x="32" y="46" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="38" font-weight="800" fill="white">M</text>
+    </svg>
+    <div>
+      <div class="header-title">Spider Mobiliza</div>
+      <div class="header-sub">by Mobiliza.me · <span id="extVersion" style="cursor:default">v3.0.0</span></div>
+    </div>
+  </div>
+  <nav class="header-tabs">
+    <button class="htab active" data-tab="extract">🕷 Extrair</button>
+    <button class="htab" data-tab="profiles">👤 Perfis</button>
+    <button class="htab" data-tab="history">📋 Histórico</button>
+    <button class="htab" data-tab="config">⚙ Config</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
+<main>
+
+<!-- ──────────────────── TAB: EXTRAIR (smart) ──────────────────── -->
+<section class="tab-panel active" id="tab-extract">
+
+  <!-- ── Entrada inteligente ── -->
+  <div class="card smart-card">
+    <div class="smart-header">
+      <div>
+        <div class="smart-title">Cole uma URL ou @usuário</div>
+        <div class="small-hint">Instagram ou Facebook — o tipo é detectado automaticamente</div>
+      </div>
+      <div id="smTurboHint" class="turbo-hint"></div>
+    </div>
+    <div class="smart-input-row mt10">
+      <input id="iSmartInput" class="smart-input" type="text"
+        placeholder="@usuario · instagram.com/p/ABC · facebook.com/groups/.../posts/..."
+        autocomplete="off" spellcheck="false">
+      <button id="btnSmartClear" class="btn ghost" style="display:none" title="Limpar">✕</button>
+    </div>
+
+    <!-- Chip de detecção + botões de ação -->
+    <div id="smartDetect" class="smart-detect hidden">
+      <div class="smart-chip-row">
+        <div id="smartChip" class="smart-chip">
+          <span id="smartChipIcon">📸</span>
+          <span id="smartChipLabel">—</span>
+        </div>
+        <span class="small-hint" style="margin-left:6px">Escolha o que extrair:</span>
+      </div>
+      <div id="smartActionBtns" class="smart-actions"></div>
+    </div>
+  </div>
+
+  <!-- ── Área de extração (aparece após selecionar ação) ── -->
+  <div id="smartBody" class="extract-layout hidden" style="margin-top:16px">
+
+    <!-- Coluna esquerda: opções + stats + download -->
+    <div class="left-col">
+
+      <div class="card">
+        <div class="card-title" id="smActionTitle">Configurar</div>
+        <div id="smOptionsFields" class="sm-fields"></div>
+        <div class="btn-group mt12">
+          <button id="btnSmStart"  class="btn green">▶ Iniciar</button>
+          <button id="btnSmPause"  class="btn amber" disabled>⏸ Pausar</button>
+          <button id="btnSmStop"   class="btn red"   disabled>⏹ Parar</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="smExtracted">0</div><div class="stat-lbl">Extraídos</div></div>
+        <div class="stat-card"><div class="stat-val" id="smTotal">—</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card"><div class="stat-val green-val" id="smPpm">—</div><div class="stat-lbl">Pág/min</div></div>
+        <div class="stat-card"><div class="stat-val" id="smEta">—</div><div class="stat-lbl">Tempo rest.</div></div>
+        <div class="stat-card"><div class="stat-val" id="smPage">0</div><div class="stat-lbl">Páginas</div></div>
+        <div class="stat-card"><div class="stat-val amber-val" id="smDelay">—</div><div class="stat-lbl">Delay</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Download</div>
+        <button id="btnSmDownload"   class="btn green btn-full" disabled>⬇ Baixar</button>
+        <button id="btnSmClearData"  class="btn ghost btn-full mt6" disabled>🗑 Limpar dados</button>
+      </div>
+
+    </div>
+
+    <!-- Coluna direita: barra + log + resultados -->
+    <div class="right-col">
+
+      <!-- Barra de progresso genérica (followers / likes / comments) -->
+      <div id="smProgressCard" class="card progress-card">
+        <div class="progress-header">
+          <span id="smLabel">Aguardando…</span>
+          <span id="smPct" class="pct-badge">0%</span>
+        </div>
+        <div class="big-bar-wrap">
+          <div id="smBar" class="big-bar" style="width:0%"></div>
+        </div>
+        <div id="smMeta"       class="progress-meta"></div>
+        <div id="smPoolStatus" class="pool-status"></div>
+      </div>
+
+      <!-- Log em tempo real -->
+      <div class="card log-card">
+        <div class="log-header">
+          <span class="card-title">Log em tempo real</span>
+          <button id="btnSmClearLog" class="btn-xs ghost">Limpar</button>
+        </div>
+        <div id="smLogBox" class="log-box">
+          <div class="log-line muted">Pronto para extrair.</div>
+        </div>
+      </div>
+
+      <!-- Card de perfil (scrape de perfil) -->
+      <div id="smProfileCard" class="card scrape-profile-card" style="display:none">
+        <div class="scrape-profile-header">
+          <div id="smAvatarPh" class="scrape-avatar scrape-avatar-placeholder" style="display:none"></div>
+          <div class="scrape-profile-info">
+            <div class="scrape-fullname" id="smFullName">—</div>
+            <div class="scrape-handle"   id="smHandle">—</div>
+            <div class="scrape-bio"      id="smBio"></div>
+          </div>
+        </div>
+        <div class="scrape-stats-row">
+          <div class="scrape-stat"><div class="scrape-stat-val" id="smPFollowers">—</div><div class="scrape-stat-lbl">Seguidores</div></div>
+          <div class="scrape-stat"><div class="scrape-stat-val" id="smPFollowing">—</div><div class="scrape-stat-lbl">Seguindo</div></div>
+          <div class="scrape-stat"><div class="scrape-stat-val" id="smPPosts">—</div><div class="scrape-stat-lbl">Posts</div></div>
+        </div>
+        <div id="smTagsRow"  class="scrape-tags-row"></div>
+        <div id="smExtUrls"  class="scrape-ext-urls" style="display:none"></div>
+      </div>
+
+      <!-- Lista de posts (scrape de perfil) -->
+      <div id="smPostsCard" class="card" style="display:none">
+        <div class="card-title-row">
+          <div class="card-title">Posts extraídos</div>
+          <span id="smPostsBadge" class="badge">0</span>
+        </div>
+        <div id="smPostsList" class="scrape-posts-list"></div>
+      </div>
+
+      <!-- Progresso de comentários por posts (profile_comments) -->
+      <div id="smPcCard" class="card" style="display:none;border-top:3px solid var(--blue)">
+        <div class="card-title-row">
+          <div class="card-title" style="color:var(--blue)">💬 Comentários extraídos</div>
+          <span id="smPcBadge" class="badge" style="background:var(--blue)">0</span>
+        </div>
+        <div class="pc-progress-row">
+          <div class="pc-prog-stat"><span id="smPcPostProg">0/0</span><div class="pc-prog-lbl">Posts</div></div>
+          <div class="pc-prog-stat"><span id="smPcTotal">0</span><div class="pc-prog-lbl">Comentários</div></div>
+        </div>
+        <div class="prog-bar-wrap mt8">
+          <div id="smPcBar" class="prog-bar" style="width:0%;background:var(--blue)"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── TAB: PERFIS ──────────────────── -->
+<section class="tab-panel" id="tab-profiles">
+  <div class="page-content" style="max-width:900px">
+    <div class="page-header">
+      <h2>Perfis / Contas Instagram</h2>
+      <p>Cada perfil é um conjunto de cookies de uma conta. Durante a extração as contas se revezam — cada uma descansa enquanto as outras trabalham.</p>
+    </div>
+
+    <div class="two-col-cards">
+      <div class="card">
+        <div class="card-title">Método 1 — Conta logada neste Chrome</div>
+        <p class="small-hint">Faça login na conta desejada em <a href="https://www.instagram.com" target="_blank">instagram.com</a> e clique em Capturar.</p>
+        <div class="input-row mt10">
+          <input id="iProfileName" type="text" placeholder="Nome (ex: conta_02)" style="flex:1">
+          <button id="btnCapture" class="btn green">📸 Capturar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Método 2 — Colar cookie de outra máquina</div>
+        <p class="small-hint">Instale o <strong>Cookie Editor</strong> no Chrome, abra o Instagram logado, clique no ícone e exporte.</p>
+        <div class="cookie-steps mt8">
+          <div class="step">1. Instalar <a href="https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank">Cookie Editor</a> no Chrome</div>
+          <div class="step">2. Abrir instagram.com logado na conta</div>
+          <div class="step">3. Clicar no ícone → <strong>Export → Export as JSON</strong> <span style="color:var(--green);font-weight:600">(recomendado)</span></div>
+          <div class="step" style="border-left-color:#94a3b8">— ou — Export → <strong>Header String</strong></div>
+          <div class="step">4. Copiar tudo e colar abaixo</div>
+        </div>
+        <input id="iPasteName" type="text" placeholder="Nome do perfil (ex: conta_joao)" class="mt10" style="width:100%">
+        <textarea id="iCookiePaste" placeholder='Cole aqui o JSON do Cookie Editor: [{"name":"sessionid","value":"..."}]&#10;— ou o formato string: sessionid=abc...; csrftoken=xyz...' rows="4" class="mt6"></textarea>
+        <button id="btnImportCookie" class="btn green btn-full mt8">📋 Importar cookie colado</button>
+        <div id="importResult" class="import-result hidden"></div>
+      </div>
+    </div>
+
+    <div class="card mt16">
+      <div class="card-title-row">
+        <div class="card-title">Perfis salvos</div>
+        <span id="profileCountBadge" class="badge">0</span>
+      </div>
+      <div id="profileList" class="profile-list">
+        <div class="muted">Nenhum perfil salvo.</div>
+      </div>
+    </div>
+
+    <div class="info-box mt16">
+      <strong>💡 Dica de velocidade:</strong> Com 10 contas e rotação a cada 1 página, cada conta descansa ~4s entre requisições. Resultado: ~4.5 min para 128k seguidores.
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── TAB: HISTÓRICO ──────────────────── -->
+<section class="tab-panel" id="tab-history">
+  <div class="page-content">
+    <div class="page-header">
+      <h2>Histórico de extrações</h2>
+      <p>As últimas 50 extrações concluídas.</p>
+    </div>
+    <div id="historyList" class="history-list">
+      <div class="muted">Nenhuma extração concluída ainda.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── TAB: CONFIG ──────────────────── -->
+<section class="tab-panel" id="tab-config">
+  <div class="page-content">
+    <div class="page-header">
+      <h2>Configurações</h2>
+    </div>
+
+    <div class="card" style="max-width:520px">
+      <div class="card-title">Presets de velocidade</div>
+      <div class="preset-row">
+        <button class="preset-btn" data-delay="5000" data-rotate="15">🛡️ Fantasma<br><small>5000ms · rotação 15</small></button>
+        <button class="preset-btn" data-delay="2500" data-rotate="8">🐢 Seguro<br><small>2500ms · rotação 8</small></button>
+        <button class="preset-btn active" data-delay="1200" data-rotate="4">⚖ Balanceado<br><small>1200ms · rotação 4</small></button>
+        <button class="preset-btn" data-delay="600" data-rotate="2">🚀 Turbo<br><small>600ms · rotação 2</small></button>
+      </div>
+      <p class="small-hint mt8">🛡️ Fantasma = menor risco de bloqueio. 🚀 Turbo = maior risco — use com 5+ contas e por pouco tempo.</p>
+    </div>
+
+    <div class="card mt16" style="max-width:520px">
+      <div class="card-title">Configuração manual</div>
+      <div class="field mt10">
+        <label>Delay base entre requisições (ms)</label>
+        <input id="cfgDelay" type="number" value="1200" min="500" max="30000" step="100">
+        <span class="small-hint">Mínimo recomendado: 1000ms.</span>
+      </div>
+      <div class="field mt12">
+        <label>Rotação de conta a cada N páginas</label>
+        <input id="cfgRotate" type="number" value="4" min="0" max="100" step="1">
+        <span class="small-hint">0 = sem rotação.</span>
+      </div>
+      <button id="btnSaveConfig" class="btn green mt16">💾 Salvar</button>
+      <span id="cfgSaved" class="save-ok hidden">✔ Salvo!</span>
+    </div>
+
+    <div class="card mt16" style="max-width:520px">
+      <div class="card-title">Anti-detecção ativas</div>
+      <ul class="small-hint" style="padding-left:18px;line-height:1.8">
+        <li><b>Warm-up:</b> visita o perfil/post antes de começar</li>
+        <li><b>Jitter ±40%:</b> variação aleatória no delay</li>
+        <li><b>Pausas humanas:</b> para de 5–20s a cada 15–25 páginas</li>
+        <li><b>x-ig-www-claim:</b> token de sessão atualizado a cada resposta</li>
+        <li><b>x-ig-device-id:</b> device ID lido do localStorage da aba</li>
+        <li><b>Referer correto:</b> cada request indica a origem correta</li>
+        <li><b>wwwClaim por conta:</b> preservado entre rotações de pool</li>
+      </ul>
+    </div>
+
+    <div class="card mt16" style="max-width:520px">
+      <div class="card-title">Referência de velocidade</div>
+      <table class="ref-table">
+        <thead><tr><th>Preset</th><th>Delay</th><th>Contas</th><th>78k seg.</th><th>Risco</th></tr></thead>
+        <tbody>
+          <tr><td>🛡️ Fantasma</td><td>5000ms</td><td>1</td><td>~3.5h</td><td>Mínimo</td></tr>
+          <tr><td>🐢 Seguro</td><td>2500ms</td><td>1</td><td>~1.5h</td><td>Baixo</td></tr>
+          <tr class="highlight"><td>⚖ Balanceado</td><td>1200ms</td><td>2–4</td><td>~45min</td><td>Médio</td></tr>
+          <tr><td>🚀 Turbo</td><td>600ms</td><td>5+</td><td>~25min</td><td>Alto</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script src="tab.js"></script>
+</body>
+</html>
