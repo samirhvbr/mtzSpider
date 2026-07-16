@@ -3,7 +3,7 @@
 > Extensão Chrome para extração de dados do Instagram e Facebook.  
 > Suporte a múltiplas contas com rotação automática, anti-detecção e download em CSV/JSON.
 
-**Versão atual:** v3.5.2
+**Versão atual:** v3.5.3
 
 ---
 

@@ -1,5 +1,21 @@
 # Spider Mobiliza — Changelog
 
+## v3.5.3 — 2026-07-16
+### Fix: vazamento de listener, CSV injection e portabilidade do script de análise
+
+Três correções de robustez/segurança levantadas em revisão de código.
+
+**1. Vazamento de listener em `waitForTabComplete` (background.js)**
+No caminho de timeout, o `chrome.tabs.onUpdated` nunca era removido — o `removeListener` só rodava quando a aba chegava a `complete`. Cada espera que estourava o timeout deixava um listener órfão disparando em *todo* update de aba dali pra frente; e como cada rotação de conta recarrega a aba (chamando a função), numa extração longa acumulavam dezenas. Agora o `removeListener` roda **sempre**, centralizado no `finish()` (+ `clearTimeout` no caminho de sucesso).
+
+**2. CSV injection / fórmula (`toCSV`, background.js)**
+O escape tratava aspas (evita quebrar a estrutura do CSV) mas **não** neutralizava fórmula: valores começando com `=` `+` `-` `@` (ou TAB/CR) são executados como fórmula pelo Excel/Sheets ao abrir o arquivo. Campos como `Bio`, `Comment`, `Fullname` e `Username` são 100% controlados pelo perfil extraído — bastava o alvo pôr `=HYPERLINK(...)` na bio para atingir quem **abre** o CSV. Fix: prefixa aspa simples nos valores com caractere-gatilho (mitigação OWASP).
+
+**3. Caminhos absolutos no `analyze_fake_followers.py`**
+`CSV_PATH`/`OUTPUT_DIR` eram absolutos de macOS (`/Users/jeanmortaza/Downloads/…`) fixos no código — não rodava em nenhuma outra máquina, e o `mkdir` executava só de importar o módulo. Agora entrada/saída vêm da linha de comando via `argparse`: `python analyze_fake_followers.py <csv> [-o pasta]`. O corpo do relatório segue especializado para @majucotrim (conteúdo/branding + dados do Social Blade) — generalizar isso é um trabalho à parte, fora do escopo deste fix.
+
+---
+
 ## v3.5.2 — 2026-05-30
 ### Fix: paginação de comentários parava prematuramente
 

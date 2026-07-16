@@ -10,6 +10,7 @@ import unicodedata
 import sys
 import base64
 import io
+import argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -22,11 +23,19 @@ try:
 except ImportError:
     HAS_MPL = False
 
-CSV_PATH    = "/Users/jeanmortaza/Downloads/IGFollow_majucotrim_78223_follower.csv"
-OUTPUT_DIR  = Path("/Users/jeanmortaza/Downloads/analise_majucotrim")
-OUTPUT_HTML = OUTPUT_DIR / "relatorio_majucotrim.html"
-OUTPUT_CSV  = OUTPUT_DIR / "seguidores_classificados.csv"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+# Entrada/saída vêm da linha de comando (ver parse_args). Antes eram caminhos
+# absolutos de macOS (/Users/jeanmortaza/Downloads/…) fixos no código — não
+# rodava em nenhuma outra máquina, e o mkdir ainda executava só de importar.
+# Uso: python analyze_fake_followers.py <csv> [-o pasta_de_saida]
+def parse_args():
+    ap = argparse.ArgumentParser(
+        description="Relatório de qualidade de seguidores a partir de um CSV do mtzSpider.",
+    )
+    ap.add_argument("csv", type=Path,
+                    help="CSV de seguidores (IGFollow_*.csv) gerado pela extensão.")
+    ap.add_argument("-o", "--output-dir", type=Path, default=None,
+                    help="Pasta de saída (default: ./analise_<nome-do-csv> ao lado do CSV).")
+    return ap.parse_args()
 
 # ─── Dados do perfil (Social Blade) ──────────────────────────────────────────
 PROFILE = {
@@ -1149,13 +1158,22 @@ a {{ color: {G_PRIMARY}; text-decoration: none; }}
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 def main():
+    args = parse_args()
+    csv_path = args.csv
+    if not csv_path.is_file():
+        print(f"❌ CSV não encontrado: {csv_path}"); sys.exit(1)
+    output_dir  = args.output_dir or (csv_path.parent / f"analise_{csv_path.stem}")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_html = output_dir / "relatorio.html"
+    output_csv  = output_dir / "seguidores_classificados.csv"
+
     print(f"\n{'='*56}")
     print("  Relatório de Qualidade de Seguidores — @majucotrim")
     print(f"{'='*56}\n")
 
     print("📂 Carregando CSV …")
     try:
-        df = pd.read_csv(CSV_PATH, encoding="utf-8-sig", low_memory=False)
+        df = pd.read_csv(csv_path, encoding="utf-8-sig", low_memory=False)
     except Exception as e:
         print(f"❌ Erro: {e}"); sys.exit(1)
     print(f"   {len(df):,} seguidores carregados\n")
@@ -1168,8 +1186,8 @@ def main():
     scores = pd.DataFrame(results)
     df_out = pd.concat([df.reset_index(drop=True), scores], axis=1)
 
-    df_out.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
-    print(f"\n💾 CSV: {OUTPUT_CSV}")
+    df_out.to_csv(output_csv, index=False, encoding="utf-8-sig")
+    print(f"\n💾 CSV: {output_csv}")
 
     total  = len(df_out)
     n_alto  = int((df_out["risk"] == "ALTO").sum())
@@ -1205,10 +1223,10 @@ def main():
 
     print("🌐 Gerando HTML …")
     html = build_html(df_out, charts)
-    with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+    with open(output_html, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"   Salvo: {OUTPUT_HTML}")
-    print(f"\n{'='*56}\n  ✅ Concluído → {OUTPUT_HTML}\n{'='*56}\n")
+    print(f"   Salvo: {output_html}")
+    print(f"\n{'='*56}\n  ✅ Concluído → {output_html}\n{'='*56}\n")
 
 if __name__ == "__main__":
     main()

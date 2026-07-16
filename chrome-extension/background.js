@@ -189,16 +189,24 @@ let fbTabId         = null; // aba do Facebook reutilizada durante extração de
 // Aguarda aba atingir status "complete" (timeout padrão 12s)
 async function waitForTabComplete(tabId, timeout = 12000) {
   return new Promise(resolve => {
-    let done = false;
-    const finish = () => { if (!done) { done = true; resolve(); } };
-
-    chrome.tabs.onUpdated.addListener(function listener(tId, info) {
-      if (tId === tabId && info.status === "complete") {
-        chrome.tabs.onUpdated.removeListener(listener);
-        finish();
-      }
-    });
-    setTimeout(finish, timeout);
+    let done  = false;
+    let timer = null;
+    const listener = (tId, info) => {
+      if (tId === tabId && info.status === "complete") finish();
+    };
+    // finish() remove o onUpdated SEMPRE — inclusive no timeout. Antes o
+    // removeListener só rodava no caminho de sucesso; toda espera que estourava
+    // (cada rotação de conta recarrega a aba e chama esta função) deixava um
+    // listener órfão disparando pra sempre em todo update de aba. Vazava.
+    function finish() {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve();
+    }
+    chrome.tabs.onUpdated.addListener(listener);
+    timer = setTimeout(finish, timeout);
   });
 }
 
@@ -1065,7 +1073,16 @@ async function saveState() {
 function toCSV(rows) {
   if (!rows.length) return "";
   const headers = Object.keys(rows[0]);
-  const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  // Escape de CSV injection (fórmula): valores começando com = + - @ ou TAB/CR
+  // são executados como fórmula pelo Excel/Sheets ao abrir o arquivo. Campos
+  // como Bio/Comment/Fullname/Username são 100% controlados pelo perfil
+  // extraído — prefixar aspa simples neutraliza (mitigação OWASP). O envelope
+  // em aspas + duplicação de " continua tratando a quebra de estrutura.
+  const esc = v => {
+    let s = String(v ?? "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
   return [headers.join(","), ...rows.map(r => headers.map(h => esc(r[h])).join(","))].join("\n");
 }
 
